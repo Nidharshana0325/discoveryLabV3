@@ -6031,6 +6031,35 @@ Respond ONLY as valid JSON in this exact format:
   }
 }
 
+function mdToHtml(text) {
+  if (!text) return '';
+  // Bold: **text**
+  let html = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  // Split into lines and handle numbered lists, bullets, and paragraphs
+  const lines = html.split('\n');
+  const out = [];
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) { out.push('<br>'); continue; }
+    // Numbered list item: "1. ..."
+    if (/^\d+\.\s/.test(line)) {
+      out.push('<div style="margin:6px 0 6px 0"><strong style="color:var(--teal)">' + line.match(/^\d+/)[0] + '.</strong> ' + line.replace(/^\d+\.\s/, '') + '</div>');
+    }
+    // Bullet: "- ..." or "* ..."
+    else if (/^[-*]\s/.test(line)) {
+      out.push('<div style="margin:4px 0 4px 12px">• ' + line.replace(/^[-*]\s/, '') + '</div>');
+    }
+    // Section label like "Strengths:" or "Gaps:"
+    else if (/^(Strengths|Gaps|Strengths:|Gaps:)/i.test(line)) {
+      out.push('<div style="margin-top:10px;margin-bottom:4px;font-weight:700;color:var(--text)">' + line + '</div>');
+    }
+    else {
+      out.push('<div style="margin-bottom:4px">' + line + '</div>');
+    }
+  }
+  return out.join('');
+}
+
 function viewDAReport() {
   if (!daReport) return;
   const r = daReport;
@@ -6039,12 +6068,12 @@ function viewDAReport() {
   document.getElementById('rpt-score').innerHTML = `${r.score}<span style="font-size:1rem;color:var(--text2)">/10</span>`;
   document.getElementById('rpt-level').textContent = r.level;
   document.getElementById('rpt-q1-ans').textContent = `"${r.q1_text}"`;
-  document.getElementById('rpt-q1-body').textContent = r.q1_analysis;
+  document.getElementById('rpt-q1-body').innerHTML = mdToHtml(r.q1_analysis);
   document.getElementById('rpt-q2-ans').textContent = `"${r.q2_text}"`;
-  document.getElementById('rpt-q2-body').textContent = r.q2_analysis;
+  document.getElementById('rpt-q2-body').innerHTML = mdToHtml(r.q2_analysis);
   document.getElementById('rpt-concepts').innerHTML = (r.concepts_shown||[]).map(c=>`<span class="rpt-chip">${c}</span>`).join('');
-  document.getElementById('rpt-study').textContent = r.study_next;
-  document.getElementById('rpt-enc-body').textContent = r.encouragement;
+  document.getElementById('rpt-study').innerHTML = mdToHtml(r.study_next);
+  document.getElementById('rpt-enc-body').innerHTML = mdToHtml(r.encouragement);
   document.getElementById('reportModal').classList.remove('hidden');
   document.getElementById('reportModal').scrollTop = 0;
 }
