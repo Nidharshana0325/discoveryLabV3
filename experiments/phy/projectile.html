@@ -6004,7 +6004,11 @@ Respond ONLY as valid JSON in this exact format:
   try {
     const clean = await callAI(prompt);
     if (clean.startsWith('AI error') || clean.startsWith('Server error')) throw new Error(clean);
-    const parsed = JSON.parse(clean);
+    const start = clean.indexOf('{'), end = clean.lastIndexOf('}');
+    if (start === -1 || end === -1) throw new Error('No JSON in response: ' + clean.slice(0,120));
+    let parsed;
+    try { parsed = JSON.parse(clean.slice(start, end + 1)); }
+    catch(pe) { console.error('Raw AI response:', clean); throw new Error('Malformed JSON — see console for raw response.'); }
     daReport = parsed;
     daReport.studentName = scientistName;
     daReport.date = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
