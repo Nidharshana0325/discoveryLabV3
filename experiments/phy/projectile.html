@@ -6003,6 +6003,7 @@ Respond ONLY as valid JSON in this exact format:
 
   try {
     const clean = await callAI(prompt);
+    if (clean.startsWith('AI error') || clean.startsWith('Server error')) throw new Error(clean);
     const parsed = JSON.parse(clean);
     daReport = parsed;
     daReport.studentName = scientistName;
